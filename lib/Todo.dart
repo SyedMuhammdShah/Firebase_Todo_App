@@ -16,12 +16,63 @@ class ToDoScreen extends StatefulWidget {
 
 class _ToDoScreenState extends State<ToDoScreen> {
   late String task;
+  late String EditText;
 
   final fieldText = TextEditingController();
+  final editText = TextEditingController();
   CollectionReference TaskReference =
       FirebaseFirestore.instance.collection('Todo');
   getStudentName(task) {
     this.task = task;
+  }
+
+  getEditStudentName(task) {
+    this.EditText = task;
+    print(EditText);
+  }
+
+  void _showcontent(task, docsId) {
+    showDialog(
+      context: context, barrierDismissible: false, // user must tap button!
+
+      builder: (BuildContext context) {
+        return new AlertDialog(
+          title: new Text('Edit Task'),
+          content: new SingleChildScrollView(
+            child: new ListBody(
+              children: [
+                // new Text('This is a Dialog Box. Click OK to Close.'),
+                TextFormField(
+                  controller: editText,
+                  //initialValue: task,
+                  decoration: InputDecoration(
+                    labelText: "Name",
+                    hintText: task,
+                    fillColor: Colors.white,
+                  ),
+                  onChanged: (String task) {
+                    getEditStudentName(task);
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            new ElevatedButton(
+              child: new Text('Ok'),
+              onPressed: () async {
+                editText.clear();
+                print(docsId);
+                print(EditText);
+                await TaskReference.doc(docsId).update({"task": EditText});
+                print(EditText);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> AddTask() {
@@ -88,6 +139,7 @@ class _ToDoScreenState extends State<ToDoScreen> {
             ),
             Expanded(
               child: Container(
+                height: 200,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -110,6 +162,7 @@ class _ToDoScreenState extends State<ToDoScreen> {
                               itemBuilder: (context, index) {
                                 var task = snapshot.data!.docs[index]['task'];
                                 var docsId = snapshot.data!.docs[index].id;
+
                                 return Card(
                                   child: ListTile(
                                     title: Text(task),
@@ -117,20 +170,22 @@ class _ToDoScreenState extends State<ToDoScreen> {
                                       height: 35,
                                       width: 35,
                                       decoration: BoxDecoration(
-                                          color: Colors.red,
+                                          color:
+                                              Color.fromARGB(255, 54, 244, 171),
                                           borderRadius:
                                               BorderRadius.circular(20)),
                                       child: IconButton(
                                         color: Colors.white,
                                         iconSize: 18,
-                                        icon: Icon(Icons.delete),
+                                        icon: Icon(Icons.edit),
                                         onPressed: () {
-                                          print(docsId);
-                                          FirebaseFirestore.instance
-                                              .collection("Todo")
-                                              .doc(docsId)
-                                              .delete();
-                                          print("after button click");
+                                          _showcontent(task, docsId);
+                                          // print(docsId);
+                                          // FirebaseFirestore.instance
+                                          //     .collection("Todo")
+                                          //     .doc(docsId)
+                                          //     .delete();
+                                          // print("after button click");
                                         },
                                       ),
                                     ),
@@ -150,3 +205,18 @@ class _ToDoScreenState extends State<ToDoScreen> {
     );
   }
 }
+// DELETE BUTTON
+
+//  IconButton(
+//                                         color: Colors.white,
+//                                         iconSize: 18,
+//                                         icon: Icon(Icons.delete),
+//                                         onPressed: () {
+//                                           print(docsId);
+//                                           FirebaseFirestore.instance
+//                                               .collection("Todo")
+//                                               .doc(docsId)
+//                                               .delete();
+//                                           print("after button click");
+//                                         },
+//                                       ),
